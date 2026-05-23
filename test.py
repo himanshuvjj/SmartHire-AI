@@ -1,1 +1,0 @@
-print("SmartHire AI Project Started")
