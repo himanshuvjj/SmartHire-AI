@@ -5,74 +5,74 @@ from database import get_connection
 from resume_parser import extract_text_from_pdf
 from ml_model import calculate_match_score
 from skill_extractor import extract_skills
-
+from candidate_extractor import extract_candidate_details
 
 st.title("Upload Candidate Resume")
-
-
-# Candidate Details
-name = st.text_input("Candidate Name")
-
-email = st.text_input("Email")
-
-phone = st.text_input("Phone")
-
-skills = st.text_area("Skills")
 
 job_description = st.text_area(
     "Job Description"
 )
 
-
-# Upload Resume
 uploaded_file = st.file_uploader(
     "Upload Resume",
     type=["pdf"]
 )
 
-
-# Submit Button
 if st.button("Submit Candidate"):
 
     if uploaded_file is not None:
 
-        # Create file path
+        os.makedirs("resumes", exist_ok=True)
+
         save_path = os.path.join(
             "resumes",
             uploaded_file.name
         )
 
-        # Save PDF file
         with open(save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
 
-            f.write(
-                uploaded_file.getbuffer()
-            )
-        
-
-        # Extract Resume Text
+        # Extract resume text
         resume_text = extract_text_from_pdf(
             save_path
         )
-        # Extract Skills
-        extracted_skills = extract_skills(
-        resume_text
-        )
 
-        # Convert List to String
-        skills_string = ", ".join(
-             extracted_skills
-              )
-
-        # Calculate Match Score
-        match_score = calculate_match_score(
-            job_description,
+        # Extract candidate details
+        candidate = extract_candidate_details(
             resume_text
         )
 
-        # Database Connection
-        conn = get_connection()
+        name = candidate["name"]
+        email = candidate["email"]
+        phone = candidate["phone"]
 
+        # Extract skills
+        extracted_skills = extract_skills(
+            resume_text
+        )
+
+        skills_string = ", ".join(
+            extracted_skills
+        )
+
+        # Calculate AI score
+        match_score = float(
+            calculate_match_score(
+                job_description,
+                resume_text
+            )
+        )
+
+        # Show extracted information
+        st.subheader("Extracted Details")
+
+        st.write("Name:", name)
+        st.write("Email:", email)
+        st.write("Phone:", phone)
+        st.write("Skills:", skills_string)
+
+        # Save to database
+        conn = get_connection()
         cursor = conn.cursor()
 
         query = """
@@ -87,7 +87,6 @@ if st.button("Submit Candidate"):
             match_score,
             extracted_skills
         )
-
         VALUES (?,?,?,?,?,?,?,?)
         """
 
@@ -95,7 +94,7 @@ if st.button("Submit Candidate"):
             name,
             email,
             phone,
-            skills,
+            skills_string,
             save_path,
             "Applied",
             match_score,
@@ -105,7 +104,6 @@ if st.button("Submit Candidate"):
         cursor.execute(query, values)
 
         conn.commit()
-
         conn.close()
 
         st.success(
@@ -117,11 +115,9 @@ if st.button("Submit Candidate"):
             match_score,
             "%"
         )
-        st.write(
-    "Extracted Skills:",
-    skills_string
-)
 
     else:
 
-        st.error("Please Upload Resume")
+        st.error(
+            "Please upload a resume"
+        )

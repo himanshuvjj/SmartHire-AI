@@ -17,6 +17,13 @@ query = "SELECT * FROM candidates"
 
 df = pd.read_sql(query, conn)
 
+df["match_score"] = pd.to_numeric(
+    df["match_score"],
+    errors="coerce"
+)
+
+df = df.dropna(subset=["match_score"])
+
 conn.close()
 
 

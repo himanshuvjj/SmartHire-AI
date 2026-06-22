@@ -24,6 +24,13 @@ query = f"SELECT * FROM candidates WHERE match_score >= {minimum_score}"
 
 df = pd.read_sql(query, conn)
 
+df["match_score"] = pd.to_numeric(
+    df["match_score"],
+    errors="coerce"
+)
+
+df = df.dropna(subset=["match_score"])
+
 
 # Display Table
 
