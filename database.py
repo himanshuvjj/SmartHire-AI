@@ -1,11 +1,9 @@
-import sqlite3
-
+import mysql.connector
 
 def get_connection():
-
-    conn = sqlite3.connect(
-        "smarthire.db",
-        check_same_thread=False
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="2004",
+        database="smarthire_ai"
     )
-
-    return conn

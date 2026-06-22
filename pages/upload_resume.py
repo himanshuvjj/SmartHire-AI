@@ -9,6 +9,10 @@ from candidate_extractor import extract_candidate_details
 
 st.title("Upload Candidate Resume")
 
+job_title = st.text_input(
+    "Job Title"
+)
+
 job_description = st.text_area(
     "Job Description"
 )
@@ -78,9 +82,10 @@ if st.button("Submit Candidate"):
         resume_path,
         status,
         match_score,
-        extracted_skills
+        extracted_skills,
+        job_title
          )
-        VALUES (?,?,?,?,?,?,?,?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
         values = (
@@ -91,7 +96,8 @@ if st.button("Submit Candidate"):
         save_path,
         "Applied",
         match_score,
-        skills_string
+        skills_string,
+        job_title
         )
 
         cursor.execute(query, values)

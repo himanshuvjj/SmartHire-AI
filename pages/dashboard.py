@@ -24,6 +24,20 @@ query = f"SELECT * FROM candidates WHERE match_score >= {minimum_score}"
 
 df = pd.read_sql(query, conn)
 
+job_titles = sorted(
+    df["job_title"].dropna().unique()
+)
+
+selected_job = st.selectbox(
+    "Filter by Job Title",
+    ["All"] + list(job_titles)
+)
+
+if selected_job != "All":
+    df = df[
+        df["job_title"] == selected_job
+    ]
+
 df["match_score"] = pd.to_numeric(
     df["match_score"],
     errors="coerce"

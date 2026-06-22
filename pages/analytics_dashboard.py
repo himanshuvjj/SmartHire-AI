@@ -15,7 +15,25 @@ conn = get_connection()
 # Read Candidate Data
 query = "SELECT * FROM candidates"
 
+
 df = pd.read_sql(query, conn)
+
+job_titles = sorted(
+    df["job_title"].dropna().unique()
+)
+
+selected_job = st.selectbox(
+    "Filter by Job Title",
+    ["All"] + list(job_titles)
+)
+
+if selected_job != "All":
+    df = df[
+        df["job_title"] == selected_job
+    ]
+
+# Continue with analytics calculations below
+average_score = df["match_score"].mean()
 
 df["match_score"] = pd.to_numeric(
     df["match_score"],
